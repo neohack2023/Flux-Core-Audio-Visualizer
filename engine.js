@@ -93,6 +93,7 @@ function loop(now) {
     rms,
     prevRms,
     buffers,
+    sampleRate: AudioEngine.getSampleRate(),
 
     ctx,
     bCtx,
