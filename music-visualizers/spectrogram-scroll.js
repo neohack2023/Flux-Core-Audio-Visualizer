@@ -12,6 +12,10 @@ VisualizerRegistry['spectrogram-scroll'] = {
 
   _melBins: null,
   _sampleRate: 44100,
+  _historyCanvas: null,
+  _historyCtx: null,
+  _historyW: 0,
+  _historyH: 0,
 
   // ---------- MEL HELPERS ----------
   _hzToMel(hz) {
@@ -113,6 +117,19 @@ VisualizerRegistry['spectrogram-scroll'] = {
     }
   },
 
+  _ensureHistoryCanvas(W, H) {
+    if (this._historyCanvas && this._historyW === W && this._historyH === H) return;
+    const canvas = typeof OffscreenCanvas !== 'undefined'
+      ? new OffscreenCanvas(W, H)
+      : document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    this._historyCanvas = canvas;
+    this._historyCtx = canvas.getContext('2d');
+    this._historyW = W;
+    this._historyH = H;
+  },
+
   draw(frame) {
     const { ctx, bCtx, bufferCanvas, W, H, buffers, config } = frame;
     const src = buffers[config.BAND] || buffers.main;
@@ -135,9 +152,13 @@ VisualizerRegistry['spectrogram-scroll'] = {
     this._fft();
 
     // Fade + scroll
+    this._ensureHistoryCanvas(W, H);
+    this._historyCtx.clearRect(0, 0, W, H);
+    this._historyCtx.drawImage(bufferCanvas, 0, 0);
+
+    bCtx.drawImage(this._historyCanvas, -SCROLL, 0);
     bCtx.fillStyle = `rgba(0,0,0,${FADE})`;
     bCtx.fillRect(0, 0, W, H);
-    bCtx.drawImage(bufferCanvas, -SCROLL, 0);
 
     const x = W - SCROLL;
     const melMap = this._melBins;

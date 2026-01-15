@@ -14,6 +14,10 @@ VisualizerRegistry['spectrogram-rgb-mel'] = {
   _sampleRate: 44100,
   _rowBins: null,
   _rowBinsH: 0,
+  _historyCanvas: null,
+  _historyCtx: null,
+  _historyW: 0,
+  _historyH: 0,
 
   _hzToMel(hz) { return 2595 * Math.log10(1 + hz / 700); },
   _melToHz(mel) { return 700 * (Math.pow(10, mel / 2595) - 1); },
@@ -86,6 +90,19 @@ VisualizerRegistry['spectrogram-rgb-mel'] = {
       // invert so low frequencies are at bottom
       this._rowBins[y] = melMap[melLen - 1 - idx];
     }
+  },
+
+  _ensureHistoryCanvas(W, H) {
+    if (this._historyCanvas && this._historyW === W && this._historyH === H) return;
+    const canvas = typeof OffscreenCanvas !== 'undefined'
+      ? new OffscreenCanvas(W, H)
+      : document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    this._historyCanvas = canvas;
+    this._historyCtx = canvas.getContext('2d');
+    this._historyW = W;
+    this._historyH = H;
   },
 
   _fft() {
@@ -166,9 +183,13 @@ VisualizerRegistry['spectrogram-rgb-mel'] = {
     this._ensureRowBins(H);
 
     // Fade + scroll history
+    this._ensureHistoryCanvas(W, H);
+    this._historyCtx.clearRect(0, 0, W, H);
+    this._historyCtx.drawImage(bufferCanvas, 0, 0);
+
+    bCtx.drawImage(this._historyCanvas, -SCROLL, 0);
     bCtx.fillStyle = `rgba(0,0,0,${FADE})`;
     bCtx.fillRect(0, 0, W, H);
-    bCtx.drawImage(bufferCanvas, -SCROLL, 0);
 
     // Compute per-band intensity columns
     const rCol = new Float32Array(H); // low -> red
