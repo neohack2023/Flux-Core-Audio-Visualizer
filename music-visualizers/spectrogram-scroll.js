@@ -114,15 +114,15 @@ VisualizerRegistry['spectrogram-scroll'] = {
   },
 
   draw(frame) {
-    const { ctx, bCtx, bufferCanvas, W, H, buffers, config } = frame;
+    const { ctx, bCtx, bufferCanvas, W, H, buffers, config, sampleRate } = frame;
     const src = buffers[config.BAND] || buffers.main;
 
     const FFT_SIZE = config.FFT_SIZE;
     const SCROLL = Math.max(1, config.SCROLL | 0);
     const FADE = config.FADE;
 
-    if (this._fftSize !== FFT_SIZE) {
-      this._initFFT(FFT_SIZE, 44100);
+    if (this._fftSize !== FFT_SIZE || this._sampleRate !== sampleRate) {
+      this._initFFT(FFT_SIZE, sampleRate);
     }
 
     // Window input
