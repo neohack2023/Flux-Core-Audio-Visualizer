@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Spectra-Core Visualizer Lab</title>
+
+  <style>
+    :root {
+      --bg: #0e0e11;
+      --panel: #15151c;
+      --border: #2a2a33;
+      --text: #e6e6eb;
+      --muted: #a0a0b0;
+      --accent: #4fd1ff;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont;
+    }
+
+    #app {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      height: 100vh;
+    }
+
+    /* ---------- SIDEBAR ---------- */
+    #sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      border-right: 1px solid var(--border);
+      background: #0c0c10;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    select,
+    button,
+    input[type="file"] {
+      background: #1f1f29;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 6px;
+      font-size: 12px;
+    }
+
+    button:hover,
+    select:hover {
+      border-color: var(--accent);
+    }
+
+    /* ---------- STAGE ---------- */
+    #stage {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: black;
+    }
+
+    #canvas {
+      flex: 1;
+      display: block;
+    }
+
+    #bufferCanvas {
+      display: none;
+    }
+
+    #transport-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px;
+      background: #0c0c10;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ---------- CONTROL RACK ---------- */
+    #plugin-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .control input[type="range"] {
+      grid-column: 1 / span 2;
+    }
+
+    .value {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--accent);
+      justify-self: end;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: var(--muted);
+      opacity: 0.8;
+    }
+  </style>
+</head>
+
+<body>
+<div id="app">
+
+  <!-- =========================
+       SIDEBAR (UI / CONTROLS)
+       ========================= -->
+  <aside id="sidebar">
+
+    <!-- GLOBAL INPUT / TRANSPORT -->
+    <div class="panel">
+      <div class="panel-title">Audio</div>
+      <div class="row">
+        <input type="file" id="fileInput" accept="audio/*" />
+        <button id="playBtn">▶ Play</button>
+      </div>
+    </div>
+
+    <!-- VISUALIZER SELECTION -->
+    <div class="panel">
+      <div class="panel-title">Visualizer</div>
+      <div class="row">
+        <label for="visualizerSelect">Type</label>
+        <select id="visualizerSelect"></select>
+      </div>
+      <div class="row">
+        <label for="band">Band</label>
+        <select id="band">
+          <option value="main">Main</option>
+          <option value="low">Low</option>
+          <option value="mid">Mid</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- PLUGIN-SPECIFIC CONTROLS -->
+    <div class="panel">
+      <div class="panel-title">Plugin Controls</div>
+      <div id="plugin-controls">
+        <div class="hint">
+          Select a visualizer to expose its controls.
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- =========================
+       STAGE (CANVAS)
+       ========================= -->
+  <main id="stage">
+    <canvas id="canvas" width="960" height="540"></canvas>
+    <canvas id="bufferCanvas" width="960" height="540"></canvas>
+
+    <div id="transport-bar">
+      <span class="hint">
+        FFT / Scroll / Fade controls appear per plugin
+      </span>
+    </div>
+  </main>
+
+</div>
+
+<!-- =========================
+     SCRIPT ORDER (IMPORTANT)
+     ========================= -->
+
+<script src="config.js"></script>
+
+<script>
+  // Registry must exist before plugins load
+  window.VisualizerRegistry = {};
+  window.ActiveVisualizer = null;
+</script>
+
+<script src="audio.js"></script>
+
+<!-- PLUGINS -->
+<script src="music-visualizers/spectrogram-scroll.js"></script>
+<script src="music-visualizers/spectrogram-rgb-mel.js"></script>
+<script src="music-visualizers/waveform-energy.js"></script>
+
+<script src="engine.js"></script>
+<script src="controls.js"></script>
+
+</body>
+</html>
